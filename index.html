@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🐱 Juego hecho para ti con mucho cariño ❤️</title>
+
+<style>
+/* =========================================================
+   1. RESET Y VARIABLES GLOBALES
+   ========================================================= */
+:root{
+  --rosa-1:#ffe3ec;
+  --rosa-2:#ffc2d9;
+  --rosa-3:#ff9ec7;
+  --rosa-4:#ff6fa3;
+  --lila:#e6c8ff;
+  --blanco-suave:#fff7fa;
+  --texto-oscuro:#6b3550;
+  --dorado:#ffd27a;
+  --sombra:rgba(255, 111, 163, .35);
+}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+body{
+  font-family:'Segoe UI', Verdana, sans-serif;
+  min-height:100vh;
+  overflow:hidden;
+  background:linear-gradient(135deg, var(--rosa-1), var(--rosa-2) 45%, var(--lila));
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+}
+
+/* Tipografía romántica para títulos */
+h1, h2, .titulo-romantico{
+  font-family:'Brush Script MT', 'Segoe Script', cursive, sans-serif;
+}
+
+/* =========================================================
+   2. FONDO DECORATIVO: CORAZONES FLOTANDO
+   ========================================================= */
+#fondo-corazones{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  overflow:hidden;
+  z-index:0;
+}
+
+.corazon-flotante{
+  position:absolute;
+  bottom:-10%;
+  font-size:1.5rem;
+  opacity:.55;
+  animation:flotar linear infinite;
+  user-select:none;
+}
+
+@keyframes flotar{
+  0%{
+    transform:translateY(0) translateX(0) rotate(0deg);
+    opacity:0;
+  }
+  10%{ opacity:.6; }
+  90%{ opacity:.5; }
+  100%{
+    transform:translateY(-115vh) translateX(20px) rotate(25deg);
+    opacity:0;
+  }
+}
+
+/* =========================================================
+   3. CONTENEDOR PRINCIPAL DEL JUEGO
+   ========================================================= */
+#app{
+  position:relative;
+  z-index:1;
+  width:min(560px, 94vw);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:14px;
+}
+
+/* =========================================================
+   4. PANTALLAS (INICIO / GAME OVER) — TARJETAS KAWAII
+   ========================================================= */
+.pantalla{
+  background:rgba(255,255,255,.85);
+  backdrop-filter:blur(8px);
+  border-radius:32px;
+  box-shadow:0 20px 45px var(--sombra), 0 0 0 6px rgba(255,255,255,.6) inset;
+  padding:40px 32px;
+  text-align:center;
+  width:100%;
+  animation:aparecer .5s ease;
+  border:3px solid var(--rosa-3);
+}
+
+.oculto{
+  display:none !important;
+}
+
+@keyframes aparecer{
+  from{ opacity:0; transform:scale(.85) translateY(20px); }
+  to{ opacity:1; transform:scale(1) translateY(0); }
+}
+
+.pantalla h1{
+  font-size:2.4rem;
+  color:var(--rosa-4);
+  text-shadow:2px 2px 0 var(--blanco-suave), 0 4px 10px var(--sombra);
+  margin-bottom:6px;
+}
+
+.pantalla h2{
+  font-size:2rem;
+  color:var(--texto-oscuro);
+  margin-bottom:16px;
+}
+
+.pantalla p{
+  color:var(--texto-oscuro);
+  font-size:1rem;
+  margin-bottom:20px;
+  line-height:1.5;
+}
+
+.subtitulo{
+  font-size:1.05rem;
+  color:#a15a80;
+  margin-bottom:24px;
+}
+
+/* Estadísticas en pantalla de game over */
+.stats-final{
+  display:flex;
+  justify-content:center;
+  gap:24px;
+  margin-bottom:24px;
+  flex-wrap:wrap;
+}
+
+.stat-box{
+  background:linear-gradient(160deg, var(--blanco-suave), var(--rosa-1));
+  border-radius:18px;
+  padding:14px 22px;
+  box-shadow:0 6px 14px rgba(0,0,0,.08);
+  min-width:120px;
+}
+
+.stat-box .stat-label{
+  font-size:.8rem;
+  color:#b06c8e;
+  letter-spacing:.5px;
+  text-transform:uppercase;
+}
+
+.stat-box .stat-valor{
+  font-size:1.8rem;
+  font-weight:bold;
+  color:var(--rosa-4);
+}
+
+.record-nuevo{
+  color:#e0a300 !important;
+  animation:brillar-texto 1s ease infinite alternate;
+}
+
+@keyframes brillar-texto{
+  from{ text-shadow:0 0 4px var(--dorado); }
+  to{ text-shadow:0 0 16px var(--dorado), 0 0 24px var(--rosa-3); }
+}
+
+/* Botones kawaii */
+.boton{
+  font-family:inherit;
+  font-size:1.15rem;
+  font-weight:600;
+  color:#fff;
+  background:linear-gradient(135deg, var(--rosa-3), var(--rosa-4));
+  border:none;
+  border-radius:50px;
+  padding:14px 38px;
+  cursor:pointer;
+  box-shadow:0 8px 18px var(--sombra), 0 0 0 4px rgba(255,255,255,.5) inset;
+  transition:transform .18s ease, box-shadow .18s ease;
+  letter-spacing:.5px;
+}
+
+.boton:hover{
+  transform:translateY(-3px) scale(1.04);
+  box-shadow:0 12px 24px var(--sombra), 0 0 0 4px rgba(255,255,255,.7) inset;
+}
+
+.boton:active{
+  transform:translateY(0) scale(.98);
+}
+
+/* =========================================================
+   5. HUD (PUNTAJE Y RÉCORD)
+   ========================================================= */
+#hud{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  width:100%;
+  background:rgba(255,255,255,.75);
+  backdrop-filter:blur(6px);
+  border-radius:20px;
+  padding:12px 22px;
+  box-shadow:0 8px 20px var(--sombra);
+  border:2px solid rgba(255,255,255,.8);
+}
+
+.hud-item{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:1.15rem;
+  font-weight:700;
+  color:var(--texto-oscuro);
+}
+
+.hud-item span.icono{
+  font-size:1.3rem;
+}
+
+#puntaje-actual, #record-actual{
+  color:var(--rosa-4);
+  min-width:22px;
+  display:inline-block;
+  text-align:center;
+}
+
+/* =========================================================
+   6. TABLERO DE JUEGO
+   ========================================================= */
+#tablero-contenedor{
+  position:relative;
+  width:100%;
+  aspect-ratio:1/1;
+  border-radius:26px;
+  overflow:hidden;
+  box-shadow:0 18px 40px var(--sombra), 0 0 0 8px rgba(255,255,255,.65) inset;
+  background:
+    linear-gradient(135deg, #fff0f5, #ffe0ee);
+  border:3px solid #ffffffaa;
+}
+
+#tablero{
+  position:absolute;
+  inset:0;
+  display:grid;
+}
+
+.celda-fondo{
+  width:100%;
+  height:100%;
+}
+
+.celda-fondo.par{
+  background:rgba(255,255,255,.28);
+}
+
+/* Elementos del juego posicionados de forma absoluta sobre grid */
+.elemento-juego{
+  position:absolute;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:left .09s linear, top .09s linear;
+  user-select:none;
+  pointer-events:none;
+}
+
+.gatito{
+  font-size:1.4rem;
+  filter:drop-shadow(0 3px 4px rgba(0,0,0,.15));
+  animation:mini-rebote .5s ease infinite alternate;
+}
+
+@keyframes mini-rebote{
+  from{ transform:scale(1); }
+  to{ transform:scale(1.08); }
+}
+
+.gatito.cabeza{
+  font-size:1.65rem;
+  z-index:5;
+  filter:drop-shadow(0 4px 6px rgba(255,111,163,.5));
+}
+
+.corazon-comida{
+  font-size:1.5rem;
+  animation:latido-corazon 1s ease-in-out infinite;
+  filter:drop-shadow(0 3px 6px rgba(255,80,140,.6));
+}
+
+@keyframes latido-corazon{
+  0%, 100%{ transform:scale(1); }
+  50%{ transform:scale(1.25); }
+}
+
+.corazon-comida.vibrar{
+  animation:vibrar-comer .25s ease;
+}
+
+@keyframes vibrar-comer{
+  0%, 100%{ transform:scale(1) rotate(0); }
+  25%{ transform:scale(1.4) rotate(-10deg); }
+  50%{ transform:scale(1.6) rotate(10deg); }
+  75%{ transform:scale(1.3) rotate(-6deg); }
+}
+
+/* Partículas de explosión al comer */
+.particula{
+  position:absolute;
+  font-size:1rem;
+  pointer-events:none;
+  z-index:20;
+  animation:particula-explota .7s ease-out forwards;
+}
+
+@keyframes particula-explota{
+  0%{
+    opacity:1;
+    transform:translate(0,0) scale(1);
+  }
+  100%{
+    opacity:0;
+    transform:translate(var(--dx), var(--dy)) scale(.3);
+  }
+}
+
+/* =========================================================
+   7. NOTIFICACIÓN ROMÁNTICA
+   ========================================================= */
+#notificacion-romantica{
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform:translate(-50%, -50%) scale(.6);
+  background:linear-gradient(135deg, rgba(255,255,255,.95), rgba(255,214,232,.95));
+  border-radius:24px;
+  padding:20px 34px;
+  font-size:1.3rem;
+  font-weight:700;
+  color:var(--rosa-4);
+  text-align:center;
+  box-shadow:0 0 40px rgba(255,150,190,.8), 0 15px 35px rgba(0,0,0,.15);
+  border:3px solid #ffffff;
+  z-index:100;
+  opacity:0;
+  pointer-events:none;
+  white-space:nowrap;
+  max-width:90vw;
+}
+
+#notificacion-romantica.mostrar{
+  animation:notif-aparece 1.6s ease forwards;
+}
+
+@keyframes notif-aparece{
+  0%{
+    opacity:0;
+    transform:translate(-50%, -50%) scale(.5);
+  }
+  15%{
+    opacity:1;
+    transform:translate(-50%, -50%) scale(1.08);
+  }
+  25%{
+    transform:translate(-50%, -50%) scale(1);
+  }
+  80%{
+    opacity:1;
+    transform:translate(-50%, -50%) scale(1);
+  }
+  100%{
+    opacity:0;
+    transform:translate(-50%, -60%) scale(.9);
+  }
+}
+
+/* Brillo detrás de la notificación */
+#notificacion-romantica::before{
+  content:"";
+  position:absolute;
+  inset:-6px;
+  border-radius:28px;
+  background:linear-gradient(135deg, var(--dorado), var(--rosa-3), var(--lila));
+  z-index:-1;
+  opacity:.5;
+  filter:blur(10px);
+}
+
+/* =========================================================
+   8. CONTROLES TÁCTILES (MÓVIL)
+   ========================================================= */
+#controles-tactiles{
+  display:none;
+  grid-template-columns:repeat(3, 56px);
+  grid-template-rows:repeat(3, 56px);
+  gap:8px;
+  margin-top:6px;
+}
+
+#controles-tactiles button{
+  border:none;
+  border-radius:16px;
+  background:linear-gradient(135deg, var(--rosa-2), var(--rosa-3));
+  color:#fff;
+  font-size:1.3rem;
+  box-shadow:0 5px 10px var(--sombra);
+  cursor:pointer;
+}
+
+#controles-tactiles button:active{
+  transform:scale(.92);
+}
+
+.btn-arriba{ grid-column:2; grid-row:1; }
+.btn-izquierda{ grid-column:1; grid-row:2; }
+.btn-derecha{ grid-column:3; grid-row:2; }
+.btn-abajo{ grid-column:2; grid-row:3; }
+
+/* Mostrar controles táctiles solo en pantallas pequeñas/táctiles */
+@media (hover:none) and (pointer:coarse){
+  #controles-tactiles{
+    display:grid;
+  }
+}
+
+/* =========================================================
+   9. RESPONSIVE
+   ========================================================= */
+@media (max-width:480px){
+  .pantalla{ padding:28px 18px; }
+  .pantalla h1{ font-size:1.9rem; }
+  .pantalla h2{ font-size:1.6rem; }
+  .hud-item{ font-size:1rem; }
+  #notificacion-romantica{ font-size:1.05rem; padding:16px 22px; white-space:normal; }
+}
+</style>
+</head>
+<body>
+
+<!-- =========================================================
+     FONDO DECORATIVO CON CORAZONES FLOTANDO (generado por JS)
+     ========================================================= -->
+<div id="fondo-corazones"></div>
+
+<div id="app">
+
+  <!-- =====================================================
+       PANTALLA DE INICIO
+       ===================================================== -->
+  <section id="pantalla-inicio" class="pantalla">
+    <h1>🐱 Gatito enamorado de ti ❤️</h1>
+    <p class="subtitulo">Guía a la fila de gatitos y recoge corazones<br>mientras coleccionas mensajes de amor que hice para ti 💕</p>
+    <button id="btn-comenzar" class="boton">Comenzar 🐾</button>
+  </section>
+
+  <!-- =====================================================
+       INTERFAZ DE JUEGO (HUD + TABLERO)
+       ===================================================== -->
+  <section id="pantalla-juego" class="oculto" style="width:100%; display:flex; flex-direction:column; align-items:center; gap:14px;">
+
+    <div id="hud">
+      <div class="hud-item">
+        <span class="icono">❤️</span> Puntaje: <span id="puntaje-actual">0</span>
+      </div>
+      <div class="hud-item">
+        <span class="icono">🏆</span> Récord: <span id="record-actual">0</span>
+      </div>
+    </div>
+
+    <div id="tablero-contenedor">
+      <div id="tablero"></div>
+    </div>
+
+    <!-- Controles táctiles para dispositivos móviles -->
+    <div id="controles-tactiles">
+      <button class="btn-arriba" data-dir="ARRIBA">⬆️</button>
+      <button class="btn-izquierda" data-dir="IZQUIERDA">⬅️</button>
+      <button class="btn-derecha" data-dir="DERECHA">➡️</button>
+      <button class="btn-abajo" data-dir="ABAJO">⬇️</button>
+    </div>
+
+  </section>
+
+  <!-- =====================================================
+       PANTALLA DE GAME OVER
+       ===================================================== -->
+  <section id="pantalla-gameover" class="pantalla oculto">
+    <h2>💔 Game Over</h2>
+    <div class="stats-final">
+      <div class="stat-box">
+        <div class="stat-label">Puntaje</div>
+        <div class="stat-valor" id="puntaje-final">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Récord</div>
+        <div class="stat-valor" id="record-final">0</div>
+      </div>
+    </div>
+    <p id="mensaje-record" class="oculto">✨ ¡Nuevo récord! ✨</p>
+    <button id="btn-reintentar" class="boton">Jugar otra vez 🐱</button>
+  </section>
+
+</div>
+
+<!-- =========================================================
+     NOTIFICACIÓN ROMÁNTICA FLOTANTE
+     ========================================================= -->
+<div id="notificacion-romantica"></div>
+
+
+<script>
+/* =============================================================
+   GATITOS ENAMORADOS — LÓGICA DEL JUEGO
+   Snake romántico kawaii, 100% HTML + CSS + JS puro
+   =============================================================
+   ÍNDICE DE SECCIONES:
+   1. Configuración y estado global
+   2. Fondo de corazones flotantes decorativos
+   3. Sonidos con Web Audio API
+   4. Construcción del tablero (grid)
+   5. Lógica del gatito-serpiente (movimiento, crecimiento)
+   6. Comida (corazones) y colisiones
+   7. Notificaciones románticas
+   8. Efectos de partículas
+   9. Controles (teclado + táctiles)
+   10. Flujo de pantallas (inicio, juego, game over)
+   11. Bucle principal del juego
+   ============================================================= */
+
+(function () {
+  'use strict';
+
+  /* ===========================================================
+     1. CONFIGURACIÓN Y ESTADO GLOBAL
+     =========================================================== */
+  const CONFIG = {
+    columnas: 18,               // número de columnas del tablero
+    filas: 18,                  // número de filas del tablero
+    velocidadInicial: 160,      // ms entre movimientos (más bajo = más rápido)
+    velocidadMinima: 70,        // velocidad máxima (límite inferior en ms)
+    incrementoVelocidad: 3,     // cuánto se reduce el intervalo por corazón comido
+    clavesRecord: 'gatitosEnamorados_record'
+  };
+
+  // Emojis del cuerpo del gatito (la cabeza usa uno distinto)
+  const EMOJI_CABEZA = '😻';
+  const EMOJIS_CUERPO = ['🐱', '😺', '😸'];
+
+  // Mensajes románticos que aparecen al comer un corazón
+  const MENSAJES_ROMANTICOS = [
+    '❤️ Eres mi lugar favorito.',
+    '🥰 Cada latido me recuerda a ti.',
+    '💕 Siempre eligiría encontrarte.',
+    '🌹 Mi corazón sonríe cuando pienso en ti.',
+    '😻 Tú haces más bonito mi mundo.',
+    '💖 Contigo todo tiene sentido.',
+    '🌸 Eres mi persona favorita.',
+    '💘 Gracias por existir.',
+    '✨ Siempre serás mi casualidad favorita.',
+    '❤️ Mi corazón es feliz contigo.'
+  ];
+
+  // Estado mutable del juego
+  const estado = {
+    gatitos: [],           // array de {x, y} — [0] es la cabeza
+    direccion: 'DERECHA',
+    siguienteDireccion: 'DERECHA',
+    comida: { x: 0, y: 0 },
+    puntaje: 0,
+    record: 0,
+    velocidadActual: CONFIG.velocidadInicial,
+    intervaloJuego: null,
+    jugando: false,
+    celdaPx: 0 // tamaño en píxeles de cada celda, calculado dinámicamente
+  };
+
+  // Referencias al DOM (se cachean al cargar la página)
+  const dom = {};
+
+  /* ===========================================================
+     2. FONDO DE CORAZONES FLOTANTES DECORATIVOS
+     =========================================================== */
+  function crearFondoCorazones() {
+    const contenedor = document.getElementById('fondo-corazones');
+    const simbolos = ['❤️', '💕', '💗', '💓', '💖'];
+    const cantidad = 22;
+
+    for (let i = 0; i < cantidad; i++) {
+      const corazon = document.createElement('span');
+      corazon.className = 'corazon-flotante';
+      corazon.textContent = simbolos[Math.floor(Math.random() * simbolos.length)];
+
+      const izquierda = Math.random() * 100;               // posición horizontal %
+      const duracion = 10 + Math.random() * 14;             // duración animación
+      const retraso = Math.random() * 14;                   // retraso de inicio
+      const tamano = 1 + Math.random() * 1.4;                // tamaño variable
+
+      corazon.style.left = izquierda + '%';
+      corazon.style.animationDuration = duracion + 's';
+      corazon.style.animationDelay = '-' + retraso + 's';
+      corazon.style.fontSize = tamano + 'rem';
+
+      contenedor.appendChild(corazon);
+    }
+  }
+
+  /* ===========================================================
+     3. SONIDOS CON WEB AUDIO API (sin archivos externos)
+     =========================================================== */
+  let contextoAudio = null;
+
+  function obtenerContextoAudio() {
+    if (!contextoAudio) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      contextoAudio = new AudioCtx();
+    }
+    return contextoAudio;
+  }
+
+  // Sonido dulce y agudo al comer un corazón (arpeggio ascendente)
+  function sonidoComer() {
+    try {
+      const ctx = obtenerContextoAudio();
+      const ahora = ctx.currentTime;
+      const notas = [880, 1108, 1318]; // notas agudas y alegres
+
+      notas.forEach((frecuencia, indice) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = frecuencia;
+
+        const inicio = ahora + indice * 0.06;
+        gain.gain.setValueAtTime(0, inicio);
+        gain.gain.linearRampToValueAtTime(0.18, inicio + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, inicio + 0.22);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(inicio);
+        osc.stop(inicio + 0.25);
+      });
+    } catch (e) { /* Audio no disponible: se ignora silenciosamente */ }
+  }
+
+  // Sonido grave y descendente para el Game Over
+  function sonidoGameOver() {
+    try {
+      const ctx = obtenerContextoAudio();
+      const ahora = ctx.currentTime;
+      const notas = [440, 349, 293, 220];
+
+      notas.forEach((frecuencia, indice) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.value = frecuencia;
+
+        const inicio = ahora + indice * 0.14;
+        gain.gain.setValueAtTime(0, inicio);
+        gain.gain.linearRampToValueAtTime(0.2, inicio + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, inicio + 0.35);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(inicio);
+        osc.stop(inicio + 0.4);
+      });
+    } catch (e) { /* Audio no disponible: se ignora silenciosamente */ }
+  }
+
+  /* ===========================================================
+     4. CONSTRUCCIÓN DEL TABLERO (GRID)
+     =========================================================== */
+  function construirTablero() {
+    dom.tablero.innerHTML = '';
+    dom.tablero.style.gridTemplateColumns = `repeat(${CONFIG.columnas}, 1fr)`;
+    dom.tablero.style.gridTemplateRows = `repeat(${CONFIG.filas}, 1fr)`;
+
+    // Celdas de fondo alternadas (efecto tablero de ajedrez sutil)
+    const totalCeldas = CONFIG.columnas * CONFIG.filas;
+    for (let i = 0; i < totalCeldas; i++) {
+      const fila = Math.floor(i / CONFIG.columnas);
+      const columna = i % CONFIG.columnas;
+      const celda = document.createElement('div');
+      celda.className = 'celda-fondo' + ((fila + columna) % 2 === 0 ? ' par' : '');
+      dom.tablero.appendChild(celda);
+    }
+
+    // Calcular el tamaño real de cada celda en píxeles tras el layout
+    requestAnimationFrame(() => {
+      const rect = dom.tableroContenedor.getBoundingClientRect();
+      estado.celdaPx = rect.width / CONFIG.columnas;
+    });
+  }
+
+  // Convierte coordenadas de grid (x,y) a posición absoluta en píxeles
+  function posicionarElemento(el, x, y) {
+    el.style.left = (x * estado.celdaPx) + 'px';
+    el.style.top = (y * estado.celdaPx) + 'px';
+    el.style.width = estado.celdaPx + 'px';
+    el.style.height = estado.celdaPx + 'px';
+  }
+
+  /* ===========================================================
+     5. LÓGICA DEL GATITO-SERPIENTE
+     =========================================================== */
+  function inicializarGatitos() {
+    // Fila inicial de 3 gatitos en el centro del tablero
+    const centroX = Math.floor(CONFIG.columnas / 2);
+    const centroY = Math.floor(CONFIG.filas / 2);
+
+    estado.gatitos = [
+      { x: centroX, y: centroY },
+      { x: centroX - 1, y: centroY },
+      { x: centroX - 2, y: centroY }
+    ];
+
+    estado.direccion = 'DERECHA';
+    estado.siguienteDireccion = 'DERECHA';
+  }
+
+  // Dibuja (o redibuja) todos los gatitos en el DOM
+  function renderizarGatitos() {
+    // Eliminar elementos previos
+    dom.tablero.querySelectorAll('.gatito').forEach(el => el.remove());
+
+    estado.gatitos.forEach((segmento, indice) => {
+      const el = document.createElement('div');
+      el.className = 'elemento-juego gatito' + (indice === 0 ? ' cabeza' : '');
+      el.textContent = indice === 0
+        ? EMOJI_CABEZA
+        : EMOJIS_CUERPO[indice % EMOJIS_CUERPO.length];
+
+      posicionarElemento(el, segmento.x, segmento.y);
+      // Pequeño retraso escalonado para dar sensación de "fila" viva
+      el.style.animationDelay = (indice * 0.08) + 's';
+      dom.tablero.appendChild(el);
+    });
+  }
+
+  // Calcula el vector de movimiento según la dirección
+  function vectorDireccion(direccion) {
+    switch (direccion) {
+      case 'ARRIBA': return { dx: 0, dy: -1 };
+      case 'ABAJO': return { dx: 0, dy: 1 };
+      case 'IZQUIERDA': return { dx: -1, dy: 0 };
+      case 'DERECHA': return { dx: 1, dy: 0 };
+      default: return { dx: 0, dy: 0 };
+    }
+  }
+
+  // Avanza la fila de gatitos una celda en la dirección actual
+  function moverGatitos() {
+    estado.direccion = estado.siguienteDireccion;
+    const { dx, dy } = vectorDireccion(estado.direccion);
+    const cabezaActual = estado.gatitos[0];
+    const nuevaCabeza = { x: cabezaActual.x + dx, y: cabezaActual.y + dy };
+
+    // Comprobar colisiones antes de mover
+    if (hayColisionPared(nuevaCabeza) || hayColisionCuerpo(nuevaCabeza)) {
+      terminarJuego();
+      return;
+    }
+
+    estado.gatitos.unshift(nuevaCabeza);
+
+    // Si la nueva cabeza coincide con la comida, crecer y generar nueva comida
+    if (nuevaCabeza.x === estado.comida.x && nuevaCabeza.y === estado.comida.y) {
+      gestionarComerCorazon();
+    } else {
+      estado.gatitos.pop(); // si no comió, se mueve sin crecer
+    }
+
+    renderizarGatitos();
+  }
+
+  function hayColisionPared(pos) {
+    return pos.x < 0 || pos.x >= CONFIG.columnas || pos.y < 0 || pos.y >= CONFIG.filas;
+  }
+
+  function hayColisionCuerpo(pos) {
+    // Se compara contra todo el cuerpo actual (la cola se moverá, pero es una
+    // simplificación segura y estándar en Snake)
+    return estado.gatitos.some(segmento => segmento.x === pos.x && segmento.y === pos.y);
+  }
+
+  /* ===========================================================
+     6. COMIDA (CORAZONES) Y COLISIONES
+     =========================================================== */
+  function generarNuevaComida() {
+    let posicionValida = false;
+    let nuevaPos = { x: 0, y: 0 };
+
+    // Reintenta hasta encontrar una celda libre (no ocupada por gatitos)
+    while (!posicionValida) {
+      nuevaPos = {
+        x: Math.floor(Math.random() * CONFIG.columnas),
+        y: Math.floor(Math.random() * CONFIG.filas)
+      };
+      posicionValida = !estado.gatitos.some(
+        seg => seg.x === nuevaPos.x && seg.y === nuevaPos.y
+      );
+    }
+
+    estado.comida = nuevaPos;
+    renderizarComida();
+  }
+
+  function renderizarComida() {
+    let elComida = dom.tablero.querySelector('.corazon-comida');
+    if (!elComida) {
+      elComida = document.createElement('div');
+      elComida.className = 'elemento-juego corazon-comida';
+      elComida.textContent = '❤️';
+      dom.tablero.appendChild(elComida);
+    }
+    posicionarElemento(elComida, estado.comida.x, estado.comida.y);
+  }
+
+  function gestionarComerCorazon() {
+    // Puntaje
+    estado.puntaje++;
+    dom.puntajeActual.textContent = estado.puntaje;
+
+    // Vibración breve antes de que "desaparezca" y reaparezca en otro lugar
+    const elComida = dom.tablero.querySelector('.corazon-comida');
+    if (elComida) {
+      elComida.classList.add('vibrar');
+      setTimeout(() => elComida.classList.remove('vibrar'), 250);
+    }
+
+    // Efectos visuales y sonoros
+    lanzarParticulas(estado.comida.x, estado.comida.y);
+    sonidoComer();
+    mostrarMensajeRomantico();
+
+    // Aumentar velocidad progresivamente (con límite mínimo de intervalo)
+    estado.velocidadActual = Math.max(
+      CONFIG.velocidadMinima,
+      estado.velocidadActual - CONFIG.incrementoVelocidad
+    );
+    reiniciarIntervaloJuego();
+
+    // Nueva comida en posición aleatoria libre
+    generarNuevaComida();
+  }
+
+  /* ===========================================================
+     7. NOTIFICACIONES ROMÁNTICAS
+     =========================================================== */
+  let temporizadorNotificacion = null;
+
+  function mostrarMensajeRomantico() {
+    const mensaje = MENSAJES_ROMANTICOS[
+      Math.floor(Math.random() * MENSAJES_ROMANTICOS.length)
+    ];
+
+    // Reiniciar animación (quitar y volver a añadir la clase)
+    dom.notificacion.classList.remove('mostrar');
+    // Forzar reflow para poder reiniciar la animación CSS
+    void dom.notificacion.offsetWidth;
+
+    dom.notificacion.textContent = mensaje;
+    dom.notificacion.classList.add('mostrar');
+
+    clearTimeout(temporizadorNotificacion);
+    temporizadorNotificacion = setTimeout(() => {
+      dom.notificacion.classList.remove('mostrar');
+    }, 1600);
+  }
+
+  /* ===========================================================
+     8. EFECTOS DE PARTÍCULAS (explosión de corazones)
+     =========================================================== */
+  function lanzarParticulas(gridX, gridY) {
+    const simbolos = ['❤️', '💕', '✨', '💖'];
+    const cantidad = 10;
+
+    const centroX = gridX * estado.celdaPx + estado.celdaPx / 2;
+    const centroY = gridY * estado.celdaPx + estado.celdaPx / 2;
+
+    for (let i = 0; i < cantidad; i++) {
+      const particula = document.createElement('span');
+      particula.className = 'particula';
+      particula.textContent = simbolos[Math.floor(Math.random() * simbolos.length)];
+
+      const angulo = Math.random() * Math.PI * 2;
+      const distancia = 30 + Math.random() * 40;
+      const dx = Math.cos(angulo) * distancia;
+      const dy = Math.sin(angulo) * distancia;
+
+      particula.style.left = centroX + 'px';
+      particula.style.top = centroY + 'px';
+      particula.style.setProperty('--dx', dx + 'px');
+      particula.style.setProperty('--dy', dy + 'px');
+
+      dom.tablero.appendChild(particula);
+
+      // Eliminar la partícula del DOM al terminar su animación
+      setTimeout(() => particula.remove(), 700);
+    }
+  }
+
+  /* ===========================================================
+     9. CONTROLES (TECLADO + TÁCTILES)
+     =========================================================== */
+  const DIRECCIONES_OPUESTAS = {
+    ARRIBA: 'ABAJO',
+    ABAJO: 'ARRIBA',
+    IZQUIERDA: 'DERECHA',
+    DERECHA: 'IZQUIERDA'
+  };
+
+  function solicitarCambioDireccion(nuevaDireccion) {
+    if (!estado.jugando) return;
+    // Evitar que el gatito se mueva directamente sobre sí mismo (180°)
+    if (DIRECCIONES_OPUESTAS[nuevaDireccion] === estado.direccion) return;
+    estado.siguienteDireccion = nuevaDireccion;
+  }
+
+  function configurarControlesTeclado() {
+    const mapaTeclas = {
+      ArrowUp: 'ARRIBA', KeyW: 'ARRIBA',
+      ArrowDown: 'ABAJO', KeyS: 'ABAJO',
+      ArrowLeft: 'IZQUIERDA', KeyA: 'IZQUIERDA',
+      ArrowRight: 'DERECHA', KeyD: 'DERECHA'
+    };
+
+    document.addEventListener('keydown', (evento) => {
+      const direccion = mapaTeclas[evento.code];
+      if (direccion) {
+        evento.preventDefault();
+        solicitarCambioDireccion(direccion);
+      }
+    });
+  }
+
+  function configurarControlesTactiles() {
+    document.querySelectorAll('#controles-tactiles button').forEach(boton => {
+      boton.addEventListener('click', () => {
+        solicitarCambioDireccion(boton.dataset.dir);
+      });
+    });
+  }
+
+  /* ===========================================================
+     10. FLUJO DE PANTALLAS (INICIO / JUEGO / GAME OVER)
+     =========================================================== */
+  function cargarRecord() {
+    const guardado = localStorage.getItem(CONFIG.clavesRecord);
+    estado.record = guardado ? parseInt(guardado, 10) : 0;
+    dom.recordActual.textContent = estado.record;
+  }
+
+  function guardarRecordSiCorresponde() {
+    let esRecordNuevo = false;
+    if (estado.puntaje > estado.record) {
+      estado.record = estado.puntaje;
+      localStorage.setItem(CONFIG.clavesRecord, String(estado.record));
+      esRecordNuevo = true;
+    }
+    return esRecordNuevo;
+  }
+
+  function iniciarJuego() {
+    // Desbloquear el audio en la primera interacción del usuario
+    obtenerContextoAudio();
+
+    dom.pantallaInicio.classList.add('oculto');
+    dom.pantallaGameover.classList.add('oculto');
+    dom.pantallaJuego.classList.remove('oculto');
+
+    // Reiniciar estado
+    estado.puntaje = 0;
+    estado.velocidadActual = CONFIG.velocidadInicial;
+    dom.puntajeActual.textContent = '0';
+
+    construirTablero();
+    inicializarGatitos();
+
+    requestAnimationFrame(() => {
+      // Esperar a que el tablero tenga su tamaño real antes de posicionar
+      requestAnimationFrame(() => {
+        renderizarGatitos();
+        generarNuevaComida();
+      });
+    });
+
+    estado.jugando = true;
+    reiniciarIntervaloJuego();
+  }
+
+  function reiniciarIntervaloJuego() {
+    clearInterval(estado.intervaloJuego);
+    estado.intervaloJuego = setInterval(moverGatitos, estado.velocidadActual);
+  }
+
+  function terminarJuego() {
+    estado.jugando = false;
+    clearInterval(estado.intervaloJuego);
+    sonidoGameOver();
+
+    const esRecordNuevo = guardarRecordSiCorresponde();
+
+    dom.puntajeFinal.textContent = estado.puntaje;
+    dom.recordFinal.textContent = estado.record;
+    dom.recordActual.textContent = estado.record;
+
+    if (esRecordNuevo) {
+      dom.mensajeRecord.classList.remove('oculto');
+      dom.recordFinal.classList.add('record-nuevo');
+    } else {
+      dom.mensajeRecord.classList.add('oculto');
+      dom.recordFinal.classList.remove('record-nuevo');
+    }
+
+    // Pequeño retraso para que se aprecie el último movimiento antes del panel
+    setTimeout(() => {
+      dom.pantallaJuego.classList.add('oculto');
+      dom.pantallaGameover.classList.remove('oculto');
+    }, 300);
+  }
+
+  /* ===========================================================
+     11. INICIALIZACIÓN GENERAL
+     =========================================================== */
+  function cachearElementosDOM() {
+    dom.pantallaInicio = document.getElementById('pantalla-inicio');
+    dom.pantallaJuego = document.getElementById('pantalla-juego');
+    dom.pantallaGameover = document.getElementById('pantalla-gameover');
+
+    dom.btnComenzar = document.getElementById('btn-comenzar');
+    dom.btnReintentar = document.getElementById('btn-reintentar');
+
+    dom.tableroContenedor = document.getElementById('tablero-contenedor');
+    dom.tablero = document.getElementById('tablero');
+
+    dom.puntajeActual = document.getElementById('puntaje-actual');
+    dom.recordActual = document.getElementById('record-actual');
+    dom.puntajeFinal = document.getElementById('puntaje-final');
+    dom.recordFinal = document.getElementById('record-final');
+    dom.mensajeRecord = document.getElementById('mensaje-record');
+
+    dom.notificacion = document.getElementById('notificacion-romantica');
+  }
+
+  function recalcularTamanoCeldaEnResize() {
+    if (!dom.tableroContenedor) return;
+    const rect = dom.tableroContenedor.getBoundingClientRect();
+    estado.celdaPx = rect.width / CONFIG.columnas;
+    if (estado.jugando) {
+      renderizarGatitos();
+      renderizarComida();
+    }
+  }
+
+  function inicializar() {
+    cachearElementosDOM();
+    crearFondoCorazones();
+    cargarRecord();
+    configurarControlesTeclado();
+    configurarControlesTactiles();
+
+    dom.btnComenzar.addEventListener('click', iniciarJuego);
+    dom.btnReintentar.addEventListener('click', iniciarJuego);
+
+    window.addEventListener('resize', recalcularTamanoCeldaEnResize);
+  }
+
+  document.addEventListener('DOMContentLoaded', inicializar);
+
+})();
+</script>
+
+</body>
+</html>
